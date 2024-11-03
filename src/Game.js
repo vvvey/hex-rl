@@ -1,54 +1,67 @@
 import React, { Component } from 'react';
-import { GridGenerator, HexGrid, Layout, Hexagon } from 'react-hexgrid';
+import { HexGrid, Layout, Hexagon } from 'react-hexgrid';
+import { Board } from './Board.ts';
+import { BLACK, WHITE } from './Constants.ts';
+import { Utils } from './Utils.ts';
 import './App.css';
 
-function convertToCubeCoordinates(grid) {
-  const cubeCoordinates = [];
-
-  for (let x = 0; x < grid.length; x++) {
-    for (let y = 0; y < grid[x].length; y++) {
-      const r = x;
-      const q = y-r;
-      const s = -q - r;
-      const st = `${x}${y}`;
-      const content = grid[x][y];
-      cubeCoordinates.push({ q, r, s, st, content,x,y});
-
-    }
-  }
-
-  return cubeCoordinates;
-}
-
-let grid = [
-  [0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0]
-];
-
-let cubeCoords = convertToCubeCoordinates(grid);
 let toggle = true
 
-class Board extends Component {
+let board = new Board(8);
 
-    handleHexClick = (x,y) => {
-        console.log(`Hex clicked: x=${x}, y=${y}`);
-        if (toggle) {
-            grid[x][y] = -1;
-            toggle = false;
-        } else {
-            grid[x][y] = 1;
-            toggle = true;
-        }
-        // grid[x][y] = 1;
-        cubeCoords = convertToCubeCoordinates(grid);
-        this.forceUpdate();
+class Game extends Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      cubeCoords: [[]],
     };
+  }
+
+  componentDidMount() {
+    this.setState({
+      cubeCoords: board.getBoardCubeCoords(),
+    });
+  }
+
+
+  handleHexClick = (x,y) => {
+      console.log(`Hex clicked: x=${x}, y=${y}`);
+      let color = BLACK;
+      if (toggle) {
+          color = WHITE;
+          toggle = false;
+      } else {
+          color = BLACK;
+          toggle = true;
+      }
+      console.log(`Color: ${color}`);
+      if (board.makeMove(x, y, color)) {
+        const audio = new Audio('mixkit-typewriter-soft-click-1125.wav');
+        audio.play();
+      } else {
+        const audio = new Audio('mixkit-click-error-1110.wav');
+        audio.play();
+      }
+      
+      
+      
+
+      this.setState({
+        cubeCoords: board.getBoardCubeCoords(),
+      });
+
+      if (board.isWin(BLACK)) {
+        console.log("Black wins");
+        const audio = new Audio('mixkit-video-game-win-2016.wav');
+        audio.play();
+        board = new Board(9);
+      }
+      if (board.isWin(WHITE)) {
+        console.log("White wins");
+      }
+
+
+  };
 
   render() {
     const hexagonSize = { x: 5, y: 5 };
@@ -62,12 +75,12 @@ class Board extends Component {
           <Layout size={hexagonSize} flat={true} spacing={1.0} origin={{ x: 0, y: -40 }}>
             
             
-            {cubeCoords.map((coord, index) => (
+            {this.state.cubeCoords.map((coord, index) => (
               <Hexagon key={index} q={coord.q} r={coord.r} s={coord.s} onClick={() => this.handleHexClick(coord.x, coord.y)}>
                 
-                {coord.content === 1 ? (
+                {coord.color === 1 ? (
                   <image x={-3} y={-3} width="6" height="6" xlinkHref="https://cdn.shopify.com/s/files/1/0606/1093/6995/files/goishi_shiro-8.png" />
-                ) : coord.content == -1 ? (
+                ) : coord.color == -1 ? (
                   <image x={-3.25} y={-3.25} width="6.5" height="6.5" xlinkHref="https://cdn.shopify.com/s/files/1/0606/1093/6995/files/goishi_kuro-8_dd5c4dd6-54f8-41f4-a3e3-fabc9fd4c904.png" />
                 ) : null}
                 
@@ -88,4 +101,4 @@ class Board extends Component {
   }
 }
 
-export default Board;
+export default Game;

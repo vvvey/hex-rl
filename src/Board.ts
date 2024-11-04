@@ -29,6 +29,25 @@ export class Board {
         return this.board;
     }
 
+    getStateKey(): string {
+        const board = this.board; 
+        return board.map(row => row.join(',')).join(';'); // Convert 2D array to unique string
+    }
+
+    getLegalMoves(): [number, number][] {
+        let emptyCells: [number, number][] = [];
+
+        for (let x = 0; x < this.board.length; x++) {
+            for (let y = 0; y < this.board[x].length; y++) {
+                if (this.board[x][y] === EMPTY) {
+                    emptyCells.push([x, y]);
+                }
+            }
+        }
+
+        return emptyCells;
+    }
+
     getBoardCubeCoords(): {q: number, r: number, s: number, x: number, y: number, color: number}[] {
         let cubeCoordinates: {q: number, r: number, s: number, x: number, y: number, color: number}[] = [];
 
@@ -71,7 +90,7 @@ export class Board {
             }
         }
 
-        if (start.size == 0 || end.size == 0) { // If either ends is empty then it is not a win
+        if (start.size === 0 || end.size === 0) { // If either ends is empty then it is not a win
             return false;
         }
 
